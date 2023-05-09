@@ -8,6 +8,7 @@ import transformers
 from peft import PeftModel
 from transformers import GenerationConfig, LlamaForCausalLM, LlamaTokenizer
 
+
 from utils.callbacks import Iteratorize, Stream
 from utils.prompter import Prompter
 
@@ -30,8 +31,10 @@ def main(
     prompt_template: str = "",  # The prompt template to use, will default to alpaca.
     server_name: str = "0.0.0.0",  # Allows to listen on all interfaces by providing '0.
     share_gradio: bool = False,
+    offload_folder: str = "",
 ):
     base_model = base_model or os.environ.get("BASE_MODEL", "")
+    offload_folder = offload_folder or os.environ.get("OFFLOAD_FOLDER", "")
     assert (
         base_model
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
@@ -43,33 +46,37 @@ def main(
             base_model,
             load_in_8bit=load_8bit,
             torch_dtype=torch.float16,
-            device_map="auto",
+            device_map={"": 'cpu'},
+            offload_folder ='.'
         )
         model = PeftModel.from_pretrained(
             model,
             lora_weights,
             torch_dtype=torch.float16,
+             offload_folder ='.'
         )
     elif device == "mps":
         model = LlamaForCausalLM.from_pretrained(
             base_model,
-            device_map={"": device},
+            device_map={"": 'cpu'},
+             offload_folder ='.',
             torch_dtype=torch.float16,
         )
         model = PeftModel.from_pretrained(
             model,
             lora_weights,
-            device_map={"": device},
+            device_map={"": 'cpu'},
+             offload_folder ='.',
             torch_dtype=torch.float16,
         )
     else:
         model = LlamaForCausalLM.from_pretrained(
-            base_model, device_map={"": device}, low_cpu_mem_usage=True
+            base_model, device_map={"": 'cpu'}, low_cpu_mem_usage=True, offload_folder ='.'
         )
         model = PeftModel.from_pretrained(
             model,
             lora_weights,
-            device_map={"": device},
+            device_map={"": 'cpu'}, offload_folder ='.'
         )
 
     # unwind broken decapoda-research config
