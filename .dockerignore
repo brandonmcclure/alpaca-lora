@@ -2,3 +2,9 @@
 .github
 .vscode
 .docker-compose.yml
+**/*~ 
+
+/mnt/cache/*
+/mnt/offload/*
+alpaca_lora.tar
+.docker_*

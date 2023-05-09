@@ -13,3 +13,10 @@ test_data.json
 todo.txt
 .venv
 .vscode
+**/*~ 
+.act/*
+/mnt/cache/*
+alpaca_lora.tar
+/mnt/offload/*
+alpaca_lora.tar
+.docker_*

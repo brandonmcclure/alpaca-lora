@@ -20,6 +20,7 @@ REPOSITORY_NAME := bmcclure89/
 IMAGE_NAME := alpaca_lora
 TAG := :latest
 DOCKER_ENVS := -e BASE_MODEL=decapoda-research/llama-7b-hf -e OFFLOAD_FOLDER=/root/offload
+DOCKER_VOLUMES := -v $${PWD}/mnt/cache:/root/.cache -v $${PWD}/mnt/offload:/root/offload
 DOCKER_CMD := generate.py --load_8bit --lora_weights 'tloen/alpaca-lora-7b'
 
 # Run Options
@@ -30,10 +31,11 @@ build: getcommitid getbranchname
 
 
 run: build
-	docker run -d $(RUN_PORTS) --env NVIDIA_DISABLE_REQUIRE=1 --gpus=all --shm-size 64g -v $${PWD}/mnt/cache:/root/.cache -v $${PWD}/mnt/offload:/root/offload $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) $(DOCKER_CMD)
-
+	docker run -d $(RUN_PORTS) --env NVIDIA_DISABLE_REQUIRE=1 --gpus=all --shm-size 64g $(DOCKER_VOLUMES) $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) $(DOCKER_CMD)
+run_shell:
+	docker run -d $(RUN_PORTS) --env NVIDIA_DISABLE_REQUIRE=1 --gpus=all --shm-size 64g --entrypoint sleep $(DOCKER_VOLUMES) $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) infinity
 run_it:
-	docker run -it $(RUN_PORTS) --gpus=all --shm-size 64g -v ${HOME}/.cache:/root/.cache $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) $(DOCKER_CMD)
+	docker run -it $(RUN_PORTS) --entrypoint sleep $(DOCKER_VOLUMES) $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) infinitiy
 
 package:
 	$$PackageFileName = "$$("$(IMAGE_NAME)" -replace "/","_").tar"; docker save $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -o $$PackageFileName
